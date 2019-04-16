@@ -9,20 +9,28 @@ const settings: PartialArgs = {
     topRef: true
 };
 
-const compilerOptions: ts.CompilerOptions = {
-    noEmit: true,
-    emitDecoratorMetadata: true,
-    experimentalDecorators: true,
-    target: ts.ScriptTarget.ES5,
-    module: ts.ModuleKind.CommonJS,
-    strictNullChecks: true,
-    typeRoots: [],
-    rootDir: "."
-};
-
 // FIXME: We're stringifying and then parsing this schema again.  Just pass around
 // the schema directly.
 export function schemaForTypeScriptSources(sourceFileNames: string[]): JSONSchemaSourceData {
+    console.log(1)
+    const tsconfigPath = ts.findConfigFile("./", ts.sys.fileExists, "tsconfig.json");
+  console.log(2)
+    const projectConfig = tsconfigPath ? ts.readJsonConfigFile(tsconfigPath, ts.sys.readFile) : undefined;
+  console.log(3)
+    const projectCompilerOptions = projectConfig ? ts.convertCompilerOptionsFromJson(projectConfig) : undefined;
+
+    console.log(projectCompilerOptions);
+
+    const compilerOptions: ts.CompilerOptions = {
+      ...defaultCompilerOptions,
+      noEmit: true,
+      emitDecoratorMetadata: true,
+      experimentalDecorators: true,
+      target: ts.ScriptTarget.ES5,
+      module: ts.ModuleKind.CommonJS,
+      strictNullChecks: true,
+      rootDir: "."
+    };
     const program = ts.createProgram(sourceFileNames, compilerOptions);
     const diagnostics = ts.getPreEmitDiagnostics(program);
     const error = diagnostics.find(d => d.category === ts.DiagnosticCategory.Error);
