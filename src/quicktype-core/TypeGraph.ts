@@ -203,7 +203,7 @@ export class TypeGraph {
         // either a _typeBuilder or a _types.
         this._types = types;
         this._typeBuilder = undefined;
-        this._topLevels = mapMap(topLevels, tref => derefTypeRef(tref, this));
+        this._topLevels = mapMap(topLevels, (tref) => derefTypeRef(tref, this));
     }
 
     get topLevels(): ReadonlyMap<string, Type> {
@@ -264,14 +264,14 @@ export class TypeGraph {
         assert(this._haveProvenanceAttributes);
 
         const view = new TypeAttributeStoreView(this.attributeStore, provenanceTypeAttributeKind);
-        const sets = Array.from(this.allTypesUnordered()).map(t => {
+        const sets = Array.from(this.allTypesUnordered()).map((t) => {
             const maybeSet = view.tryGet(t);
             if (maybeSet !== undefined) return maybeSet;
             return new Set();
         });
         const result = new Set();
         setUnionManyInto(result, sets);
-        return result;
+        return result as ReadonlySet<number>;
     }
 
     setPrintOnRewrite(): void {
@@ -415,14 +415,14 @@ export class TypeGraph {
     getParentsOfType(t: Type): Set<Type> {
         assertTypeRefGraph(t.typeRef, this);
         if (this._parents === undefined) {
-            const parents = defined(this._types).map(_ => new Set());
+            const parents = defined(this._types).map((_) => new Set());
             for (const p of this.allTypesUnordered()) {
                 for (const c of p.getChildren()) {
                     const index = c.index;
                     parents[index] = parents[index].add(p);
                 }
             }
-            this._parents = parents;
+            this._parents = parents as Set<Type>[];
         }
         return this._parents[t.index];
     }
@@ -437,7 +437,7 @@ export class TypeGraph {
             if (children.size > 0) {
                 parts.push(
                     `children ${Array.from(children)
-                        .map(c => c.index)
+                        .map((c) => c.index)
                         .join(",")}`
                 );
             }
@@ -457,7 +457,7 @@ export function noneToAny(
     stringTypeMapping: StringTypeMapping,
     debugPrintReconstitution: boolean
 ): TypeGraph {
-    const noneTypes = setFilter(graph.allTypesUnordered(), t => t.kind === "none");
+    const noneTypes = setFilter(graph.allTypesUnordered(), (t) => t.kind === "none");
     if (noneTypes.size === 0) {
         return graph;
     }
@@ -491,7 +491,7 @@ export function optionalToNullable(
                 const nullType = builder.getPrimitiveType("null");
                 let members: ReadonlySet<TypeRef>;
                 if (t instanceof UnionType) {
-                    members = setMap(t.members, m => builder.reconstituteType(m)).add(nullType);
+                    members = setMap(t.members, (m) => builder.reconstituteType(m)).add(nullType);
                 } else {
                     members = new Set([builder.reconstituteType(t), nullType]);
                 }
@@ -511,9 +511,9 @@ export function optionalToNullable(
 
     const classesWithOptional = setFilter(
         graph.allTypesUnordered(),
-        t => t instanceof ClassType && mapSome(t.getProperties(), p => p.isOptional)
+        (t) => t instanceof ClassType && mapSome(t.getProperties(), (p) => p.isOptional)
     );
-    const replacementGroups = Array.from(classesWithOptional).map(c => [c as ClassType]);
+    const replacementGroups = Array.from(classesWithOptional).map((c) => [c as ClassType]);
     if (classesWithOptional.size === 0) {
         return graph;
     }
