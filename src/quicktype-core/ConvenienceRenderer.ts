@@ -6,7 +6,7 @@ import {
     mapFilter,
     mapSortBy,
     mapFilterMap,
-    mapSome,
+    mapSome
 } from "collection-utils";
 
 import { Type, ClassType, EnumType, UnionType, TypeKind, ClassProperty, MapType, ObjectType } from "./Type";
@@ -42,11 +42,13 @@ const unionMemberNameOrder = 40;
 
 function splitDescription(descriptions: Iterable<string> | undefined): string[] | undefined {
     if (descriptions === undefined) return undefined;
-    const description = Array.from(descriptions).join("\n\n").trim();
+    const description = Array.from(descriptions)
+        .join("\n\n")
+        .trim();
     if (description === "") return undefined;
     return wordWrap(description)
         .split("\n")
-        .map((l) => l.trim());
+        .map(l => l.trim());
 }
 
 export type ForbiddenWordsInfo = { names: (Name | string)[]; includeGlobalForbidden: boolean };
@@ -213,7 +215,7 @@ export abstract class ConvenienceRenderer extends Renderer {
         this._otherForbiddenNamespaces = new Map();
         this._globalNamespace = new Namespace("global", undefined, [this._globalForbiddenNamespace], []);
         const { objects, enums, unions } = this.typeGraph.allNamedTypesSeparated();
-        const namedUnions = setFilter(unions, (u) => this.unionNeedsName(u));
+        const namedUnions = setFilter(unions, u => this.unionNeedsName(u));
         for (const [name, t] of this.topLevels) {
             this.nameStoreView.setForTopLevel(name, this.addNameForTopLevel(t, name));
         }
@@ -418,7 +420,7 @@ export abstract class ConvenienceRenderer extends Renderer {
         if (isFixed) {
             return new FixedName(defined(assignedName));
         }
-        return new DependencyName(nonNull(this._unionMemberNamer), unionMemberNameOrder, (lookup) => {
+        return new DependencyName(nonNull(this._unionMemberNamer), unionMemberNameOrder, lookup => {
             if (assignedName !== undefined) return assignedName;
             return this.proposeUnionMemberName(u, unionName, t, lookup);
         });
@@ -557,28 +559,28 @@ export abstract class ConvenienceRenderer extends Renderer {
         const typeNameForUnionMember = (t: Type): string =>
             matchTypeExhaustive(
                 t,
-                (_noneType) => {
+                _noneType => {
                     return panic("none type should have been replaced");
                 },
-                (_anyType) => "anything",
-                (_nullType) => "null",
-                (_boolType) => "bool",
-                (_integerType) => "integer",
-                (_doubleType) => "double",
-                (_stringType) => "string",
-                (arrayType) => typeNameForUnionMember(arrayType.items) + "_array",
-                (classType) => lookup(this.nameForNamedType(classType)),
-                (mapType) => typeNameForUnionMember(mapType.values) + "_map",
-                (objectType) => {
+                _anyType => "anything",
+                _nullType => "null",
+                _boolType => "bool",
+                _integerType => "integer",
+                _doubleType => "double",
+                _stringType => "string",
+                arrayType => typeNameForUnionMember(arrayType.items) + "_array",
+                classType => lookup(this.nameForNamedType(classType)),
+                mapType => typeNameForUnionMember(mapType.values) + "_map",
+                objectType => {
                     assert(
                         this.targetLanguage.supportsFullObjectType,
                         "Object type should have been replaced in `replaceObjectType`"
                     );
                     return lookup(this.nameForNamedType(objectType));
                 },
-                (_enumType) => "enum",
-                (_unionType) => "union",
-                (transformedType) => transformedType.kind.replace("-", "_")
+                _enumType => "enum",
+                _unionType => "union",
+                transformedType => transformedType.kind.replace("-", "_")
             );
 
         return typeNameForUnionMember(fieldType);
@@ -604,8 +606,8 @@ export abstract class ConvenienceRenderer extends Renderer {
         if (this._cycleBreakerTypes === undefined) {
             this._cycleBreakerTypes = cycleBreakerTypesForGraph(
                 this.typeGraph,
-                (s) => this.isImplicitCycleBreaker(s),
-                (s) => this.canBreakCycles(s)
+                s => this.isImplicitCycleBreaker(s),
+                s => this.canBreakCycles(s)
             );
         }
         return this._cycleBreakerTypes.has(t);
@@ -649,7 +651,7 @@ export abstract class ConvenienceRenderer extends Renderer {
     ): void {
         const propertyNames = defined(this._propertyNamesStoreView).get(o);
         if (this._alphabetizeProperties) {
-            const alphabetizedPropertyNames = mapSortBy(propertyNames, (n) => defined(this.names.get(n)));
+            const alphabetizedPropertyNames = mapSortBy(propertyNames, n => defined(this.names.get(n)));
             this.forEachWithBlankLines(alphabetizedPropertyNames, blankLocations, (name, jsonName, pos) => {
                 const p = defined(o.getProperties().get(jsonName));
                 f(name, jsonName, p, pos);
@@ -663,7 +665,11 @@ export abstract class ConvenienceRenderer extends Renderer {
     }
 
     protected nameForUnionMember(u: UnionType, t: Type): Name {
-        return defined(defined(this._memberNamesStoreView).get(u).get(t));
+        return defined(
+            defined(this._memberNamesStoreView)
+                .get(u)
+                .get(t)
+        );
     }
 
     protected nameForEnumCase(e: EnumType, caseName: string): Name {
@@ -680,7 +686,7 @@ export abstract class ConvenienceRenderer extends Renderer {
     ): void {
         const iterateMembers = members === null ? u.members : members;
         if (sortOrder === null) {
-            sortOrder = (n) => defined(this.names.get(n));
+            sortOrder = n => defined(this.names.get(n));
         }
         const memberNames = mapFilter(defined(this._memberNamesStoreView).get(u), (_, t) => iterateMembers.has(t));
         const sortedMemberNames = mapSortBy(memberNames, sortOrder);
@@ -693,7 +699,7 @@ export abstract class ConvenienceRenderer extends Renderer {
         f: (name: Name, jsonName: string, position: ForEachPosition) => void
     ): void {
         const caseNames = defined(this._caseNamesStoreView).get(e);
-        const sortedCaseNames = mapSortBy(caseNames, (n) => defined(this.names.get(n)));
+        const sortedCaseNames = mapSortBy(caseNames, n => defined(this.names.get(n)));
         this.forEachWithBlankLines(sortedCaseNames, blankLocations, f);
     }
 
@@ -851,9 +857,9 @@ export abstract class ConvenienceRenderer extends Renderer {
     private processGraph(): void {
         this._declarationIR = declarationsForGraph(
             this.typeGraph,
-            this.needsTypeDeclarationBeforeUse ? (t) => this.canBeForwardDeclared(t) : undefined,
-            (t) => this.childrenOfType(t),
-            (t) => {
+            this.needsTypeDeclarationBeforeUse ? t => this.canBeForwardDeclared(t) : undefined,
+            t => this.childrenOfType(t),
+            t => {
                 if (t instanceof UnionType) {
                     return this.unionNeedsName(t);
                 }
@@ -862,11 +868,11 @@ export abstract class ConvenienceRenderer extends Renderer {
         );
 
         const types = this.typeGraph.allTypesUnordered();
-        this._haveUnions = iterableSome(types, (t) => t instanceof UnionType);
-        this._haveMaps = iterableSome(types, (t) => t instanceof MapType);
-        const classTypes = setFilter(types, (t) => t instanceof ClassType) as Set<ClassType>;
-        this._haveOptionalProperties = iterableSome(classTypes, (c) => mapSome(c.getProperties(), (p) => p.isOptional));
-        this._namedTypes = this._declarationIR.declarations.filter((d) => d.kind === "define").map((d) => d.type);
+        this._haveUnions = iterableSome(types, t => t instanceof UnionType);
+        this._haveMaps = iterableSome(types, t => t instanceof MapType);
+        const classTypes = setFilter(types, t => t instanceof ClassType) as Set<ClassType>;
+        this._haveOptionalProperties = iterableSome(classTypes, c => mapSome(c.getProperties(), p => p.isOptional));
+        this._namedTypes = this._declarationIR.declarations.filter(d => d.kind === "define").map(d => d.type);
         const { objects, enums, unions } = separateNamedTypes(this._namedTypes);
         this._namedObjects = new Set(objects);
         this._namedEnums = new Set(enums);
@@ -892,7 +898,7 @@ export abstract class ConvenienceRenderer extends Renderer {
             processed.add(process(t));
         }
 
-        for (;;) {
+        for (; ;) {
             const maybeType = queue.pop();
             if (maybeType === undefined) {
                 break;
@@ -900,6 +906,6 @@ export abstract class ConvenienceRenderer extends Renderer {
             visit(maybeType);
         }
 
-        return processed as Set<TResult>;
+        return processed;
     }
 }

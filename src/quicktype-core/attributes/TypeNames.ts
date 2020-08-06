@@ -40,9 +40,9 @@ function combineNames(names: ReadonlySet<string>): string {
         return originalFirst;
     }
 
-    const namesSet = setMap(names, (s) =>
+    const namesSet = setMap(names, s =>
         splitIntoWords(s)
-            .map((w) => w.word.toLowerCase())
+            .map(w => w.word.toLowerCase())
             .join("_")
     );
     const first = defined(iterableFirst(namesSet));
@@ -134,7 +134,7 @@ export class RegularTypeNames extends TypeNames {
     add(namesArray: TypeNames[], startIndex: number = 0): TypeNames {
         let newNames = new Set(this.names);
         let newDistance = this.distance;
-        let newAlternativeNames = definedMap(this._alternativeNames, (s) => new Set(s));
+        let newAlternativeNames = definedMap(this._alternativeNames, s => new Set(s));
 
         for (let i = startIndex; i < namesArray.length; i++) {
             const other = namesArray[i];
@@ -158,7 +158,7 @@ export class RegularTypeNames extends TypeNames {
                 // The other one is closer, so take its names
                 newNames = new Set(other.names);
                 newDistance = other.distance;
-                newAlternativeNames = definedMap(other._alternativeNames, (s) => new Set(s));
+                newAlternativeNames = definedMap(other._alternativeNames, s => new Set(s));
             } else {
                 // Same distance, merge them
                 assert(other.distance === newDistance, "This should be the only case left");
@@ -170,7 +170,7 @@ export class RegularTypeNames extends TypeNames {
 
     clearInferred(): TypeNames {
         const newNames = this.areInferred ? new Set() : this.names;
-        return TypeNames.makeWithDistance(newNames as any, new Set(), this.distance);
+        return TypeNames.makeWithDistance(newNames, new Set(), this.distance);
     }
 
     get combinedName(): string {
@@ -193,7 +193,7 @@ export class RegularTypeNames extends TypeNames {
     singularize(): TypeNames {
         return TypeNames.makeWithDistance(
             setMap(this.names, pluralize.singular),
-            definedMap(this._alternativeNames, (an) => setMap(an, pluralize.singular)),
+            definedMap(this._alternativeNames, an => setMap(an, pluralize.singular)),
             this.distance + 1
         );
     }
@@ -295,7 +295,7 @@ export function modifyTypeNames(
 }
 
 export function singularizeTypeNames(attributes: TypeAttributes): TypeAttributes {
-    return modifyTypeNames(attributes, (maybeNames) => {
+    return modifyTypeNames(attributes, maybeNames => {
         if (maybeNames === undefined) return undefined;
         return maybeNames.singularize();
     });
