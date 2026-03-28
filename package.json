@@ -33,7 +33,7 @@
         "@mark.probst/typescript-json-schema": "~0.32.0",
         "@mark.probst/unicode-properties": "~1.1.0",
         "urijs": "^1.19.1",
-        "uuid": "^3.2.1",
+        "uuid": "^3.4.0",
         "wordwrap": "^1.0.0"
     },
     "devDependencies": {
